@@ -63,6 +63,14 @@ public final class HoursRange {
         return h >= openHour || h < closeHour;
     }
 
+    public boolean isOpenNow()
+    {
+        if (is24Hours()) return true;
+        int now = LocalTime.now().getHour();
+        if (closeHour > openHour) return now < closeHour && now >= openHour;
+        return now >= openHour || now < closeHour;
+    }
+
     @Override
     public String toString() {
         if (is24Hours()) return "24h";
