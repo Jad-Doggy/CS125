@@ -1,9 +1,40 @@
+import { useEffect, useState } from "react";
 import FilterCard from "../components/FilterCard";
 import PoiCard from "../components/PoiCard";
 import { mockPois } from "../data/mockPois";
 
 export default function SearchMock() {
+  const [backendStatus, setBackendStatus] = useState<
+      "loading" | "ok" | "error"
+  >("loading");
+
+  useEffect(() => {
+    fetch("http://localhost:8080/api/ping")
+        .then((res) => res.json())
+        .then(() => setBackendStatus("ok"))
+        .catch(() => setBackendStatus("error"));
+  }, []);
+
+
   return (
+    <>
+        {/* backend status */}
+        <div className="mb-4 flex items-center gap-2 text-xs">
+          <span className="font-medium">Backend:</span>
+          <span
+              className={[
+                "rounded-full px-2 py-1",
+                backendStatus === "ok" && "bg-emerald-50 text-emerald-700",
+                backendStatus === "loading" && "bg-neutral-100 text-neutral-600",
+                backendStatus === "error" && "bg-red-50 text-red-700",
+              ]
+                  .filter(Boolean)
+                  .join(" ")}
+          >
+        {backendStatus}
+      </span>
+    </div>
+
     <div className="grid gap-6 lg:grid-cols-[320px_1fr]">
       {/* Left: filters */}
       <aside className="space-y-4">
@@ -77,5 +108,6 @@ export default function SearchMock() {
         </div>
       </section>
     </div>
+    </>
   );
 }
