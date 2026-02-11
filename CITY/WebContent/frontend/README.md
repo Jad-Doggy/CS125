@@ -25,8 +25,15 @@ From the repository root:
 cd frontend
 npm install
 ```
+```bash
+npm install --save-dev concurrently
+```
 
 ## Run (Dev Server)
+
+in another terminal run BackendServer.java\
+Then
+
 
 ```bash
 npm run dev
