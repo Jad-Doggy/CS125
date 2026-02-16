@@ -86,6 +86,16 @@ public final class SearchService {
         return results;
     }
 
+    public List<SearchResult> searchTopK(SearchRequest req, int k) {
+        if (k <= 0) return Collections.emptyList();
+
+        List<SearchResult> ranked = search(req); // already sorted via Collections.sort(results)
+        if (ranked.isEmpty()) return ranked;
+
+        int end = Math.min(k, ranked.size());
+        return List.copyOf(ranked.subList(0, end)); // copy to avoid view-backed subList surprises
+    }
+
     private static double computeDistanceMiles(GeoPoint user, GeoPoint poi) {
         if (user == null || poi == null) return Double.NaN;
         return GeoUtils.milesBetween(user, poi);
