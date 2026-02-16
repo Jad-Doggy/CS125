@@ -65,3 +65,8 @@ Thumbs.db
 # IDE
 .vscode/
 .idea/
+
+# Java compiled files
+*.class
+*.log
+.DS_Store
