@@ -70,3 +70,5 @@ Thumbs.db
 *.class
 *.log
 .DS_Store
+
+.env
