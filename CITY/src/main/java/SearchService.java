@@ -17,6 +17,7 @@ public final class SearchService {
 
         final Double maxDist = req.maxDistanceMiles;
         final Integer maxPrice = req.maxPriceLevel;
+        final Set<String> query = req.desiredTags;
 
         List<SearchResult> results = new ArrayList<>();
 
@@ -28,11 +29,11 @@ public final class SearchService {
                 }
             }
 
-            // Filter open-now
+            // Filter open-now ONLY when requested
             if (req.openNowOnly) {
                 if (!isOpenNow(poi, req.queryTime)) continue;
             }
-            
+
             // compute distance
             double dist = computeDistanceMiles(req.userLocation, poi.location);
 
@@ -41,20 +42,33 @@ public final class SearchService {
                 if (!Double.isNaN(dist) && dist > maxDist) continue;
             }
 
-            // Scoring
-            int tagMatches = countTagMatches(poi.tags, req.desiredTags);
+            // --- Keyword matching (tags + name text) ---
+            int tagMatches = countTagMatches(poi.tags, query);
+            int nameMatches = countNameMatches(poi.name, query);
+            int totalMatches = tagMatches + nameMatches;
 
+            // IMPORTANT: If user typed keywords, require at least one match
+            if (query != null && !query.isEmpty() && totalMatches == 0) {
+                continue;
+            }
+
+            // Scoring
             double score = 0.0;
             List<String> why = new ArrayList<>();
 
-            score += tagMatches * 100.0;
-            if (tagMatches > 0) why.add("matches " + tagMatches + " tag(s)");
+            // Keyword score dominates
+            score += totalMatches * 100.0;
+            if (totalMatches > 0) {
+                why.add("matches " + totalMatches + " keyword(s)");
+            }
 
-            if (isOpenNow(poi, req.queryTime)) {
+            // Only mention open-now if the user asked for it
+            if (req.openNowOnly) {
                 score += 15.0;
                 why.add("open now");
             }
 
+            // Distance score
             if (!Double.isNaN(dist)) {
                 why.add(String.format("%.2f mi away", dist));
 
@@ -69,7 +83,7 @@ public final class SearchService {
                 why.add("distance unknown");
             }
 
-            // Price bonus
+            // Price bonus (only if user set a max price)
             if (maxPrice != null && maxPrice > 0 && poi.priceRange != null) {
                 if (poi.priceRange.isUnknown()) {
                     why.add("price unknown");
@@ -79,7 +93,7 @@ public final class SearchService {
                 }
             }
 
-            results.add(new SearchResult(poi, dist, tagMatches, score, why));
+            results.add(new SearchResult(poi, dist, totalMatches, score, why));
         }
 
         Collections.sort(results);
@@ -89,11 +103,11 @@ public final class SearchService {
     public List<SearchResult> searchTopK(SearchRequest req, int k) {
         if (k <= 0) return Collections.emptyList();
 
-        List<SearchResult> ranked = search(req); // already sorted via Collections.sort(results)
+        List<SearchResult> ranked = search(req);
         if (ranked.isEmpty()) return ranked;
 
         int end = Math.min(k, ranked.size());
-        return List.copyOf(ranked.subList(0, end)); // copy to avoid view-backed subList surprises
+        return List.copyOf(ranked.subList(0, end));
     }
 
     private static double computeDistanceMiles(GeoPoint user, GeoPoint poi) {
@@ -121,6 +135,25 @@ public final class SearchService {
             if (norm.isEmpty()) continue;
             if (poiTags.contains(norm)) count++;
         }
+        return count;
+    }
+
+    // NEW: count keyword matches in the POI name (simple substring match)
+    private static int countNameMatches(String name, Set<String> queryTags) {
+        if (queryTags == null || queryTags.isEmpty()) return 0;
+        if (name == null || name.isBlank()) return 0;
+
+        String n = name.toLowerCase();
+        int count = 0;
+
+        for (String q : queryTags) {
+            if (q == null) continue;
+            String needle = q.trim().toLowerCase();
+            if (needle.isEmpty()) continue;
+
+            if (n.contains(needle)) count++;
+        }
+
         return count;
     }
 

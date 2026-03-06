@@ -6,7 +6,7 @@
   "scripts": {
     "build": "tsc -b && vite build",
     "preview": "vite preview",
-    "backend": "javac BackendServer.java && java BackendServer",
+    "backend": "javac -d ../../target/classes ../../src/main/java/*.java && java -cp ../../target/classes BackendServer",
     "dev": "concurrently \"npm run backend\" \"vite\""
   },
   "dependencies": {
