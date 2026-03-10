@@ -47,7 +47,7 @@ public final class SearchService {
             int nameMatches = countNameMatches(poi.name, query);
             int totalMatches = tagMatches + nameMatches;
 
-            // IMPORTANT: If user typed keywords, require at least one match
+            // IMPORTANT: If user typed keywords, require at least one to meet similarity threshold
             if (query != null && !query.isEmpty() && totalMatches == 0) {
                 continue;
             }
@@ -138,23 +138,56 @@ public final class SearchService {
         return count;
     }
 
-    // NEW: count keyword matches in the POI name (simple substring match)
+    // Calculates levenshtein distance for word similarity
+
     private static int countNameMatches(String name, Set<String> queryTags) {
         if (queryTags == null || queryTags.isEmpty()) return 0;
         if (name == null || name.isBlank()) return 0;
 
-        String n = name.toLowerCase();
+        String[] words = name.toLowerCase().split("\\s+");
         int count = 0;
+        double threshold = 0.7;
 
         for (String q : queryTags) {
-            if (q == null) continue;
-            String needle = q.trim().toLowerCase();
-            if (needle.isEmpty()) continue;
+            if (q == null || q.isBlank()) continue;
+            String query = q.toLowerCase();
 
-            if (n.contains(needle)) count++;
+            for (String word : words) {
+                if (similarity(word, query) >= threshold) {
+                    count++;
+                    break;
+                }
+            }
         }
 
         return count;
+    }
+
+    private static double similarity(String a, String b) {
+        int dist = levenshtein(a, b);
+        int maxLen = Math.max(a.length(), b.length());
+        if (maxLen == 0) return 1.0;
+        return 1.0 - ((double) dist / maxLen);
+    }
+
+    private static int levenshtein(String a, String b) {
+        int[][] dp = new int[a.length()+1][b.length()+1];
+
+        for (int i = 0; i <= a.length(); i++) dp[i][0] = i;
+        for (int j = 0; j <= b.length(); j++) dp[0][j] = j;
+
+        for (int i = 1; i <= a.length(); i++) {
+            for (int j = 1; j <= b.length(); j++) {
+                int cost = a.charAt(i-1) == b.charAt(j-1) ? 0 : 1;
+
+                dp[i][j] = Math.min(
+                        Math.min(dp[i-1][j] + 1, dp[i][j-1] + 1),
+                        dp[i-1][j-1] + cost
+                );
+            }
+        }
+
+        return dp[a.length()][b.length()];
     }
 
     private static double clamp01(double x) {
