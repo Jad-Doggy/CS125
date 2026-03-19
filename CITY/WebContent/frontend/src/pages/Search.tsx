@@ -25,7 +25,7 @@ export default function Search() {
     "loading"
   );
 
-  const [query, setQuery] = useState("coffee");
+  const [query, setQuery] = useState("Irvine");
   const [openNow, setOpenNow] = useState(false);
   const [maxDist, setMaxDist] = useState(""); // miles (optional)
   const [maxPrice, setMaxPrice] = useState(""); // int (optional)
@@ -192,7 +192,7 @@ export default function Search() {
               placeholder="coffee boba tea"
             />
             <p className="mt-2 text-xs text-neutral-500">
-              Tip: spaces or commas both work (e.g. “boba tea” or “boba,tea”)
+              Tip: spaces or commas both work (e.g. “great park” or “great, park”)
             </p>
 
             <button
