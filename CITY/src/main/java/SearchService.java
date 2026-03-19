@@ -7,6 +7,7 @@ import java.util.Set;
 // Core search logic
 public final class SearchService {
     private final List<Poi> candidates;
+    private static List<String> keywords = new ArrayList<>();
 
     public SearchService(List<Poi> candidates) {
         this.candidates = (candidates == null) ? List.of() : List.copyOf(candidates);
@@ -20,6 +21,7 @@ public final class SearchService {
         final Set<String> query = req.desiredTags;
 
         List<SearchResult> results = new ArrayList<>();
+
 
         for (Poi poi : candidates) {
             // Filter price
@@ -66,7 +68,7 @@ public final class SearchService {
             // Keyword score dominates
             score += totalMatches * 100.0;
             if (totalMatches > 0) {
-                why.add("matches " + totalMatches + " keyword(s)");
+                why.add("matches " + totalMatches + " keyword(s)" + "\n" + keywords);
             }
 
             // Only mention open-now if the user asked for it
@@ -101,6 +103,7 @@ public final class SearchService {
             }
 
             results.add(new SearchResult(poi, dist, totalMatches, score, why));
+            keywords.clear();
         }
 
         Collections.sort(results);
@@ -140,7 +143,11 @@ public final class SearchService {
             if (tag == null) continue;
             String norm = tag.trim().toLowerCase();
             if (norm.isEmpty()) continue;
-            if (poiTags.contains(norm)) count++;
+            if (poiTags.contains(norm))
+            {
+                keywords.add(norm);
+                count++;
+            }
         }
         return count;
     }
@@ -161,6 +168,7 @@ public final class SearchService {
 
             for (String word : words) {
                 if (similarity(word, query) >= threshold) {
+                    keywords.add(word);
                     count++;
                     break;
                 }
