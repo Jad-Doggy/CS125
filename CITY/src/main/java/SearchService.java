@@ -52,6 +52,13 @@ public final class SearchService {
                 continue;
             }
 
+            // FORMULA: Score = (M * 100) + 15x + 5p + D
+            // M is the number of matching words and keywords in a query
+            // x is a boolean where x = 0 if a POI is not open right now and x = 1 if it is
+            // p is a boolean where p = 0 if no price range is specified and p = 1 if a POI falls in the price range
+            // D is the distance score where d = (0 ≤  closeness ≤ 1) * 40 if a range is specified, d = 20/(1 + distance)
+            //   if no max distance is specified, and d = -5 is the distance is unknown.
+            //   closeness is a measure of how far a POI is in relation to the max distance set by the user.
             // Scoring
             double score = 0.0;
             List<String> why = new ArrayList<>();
