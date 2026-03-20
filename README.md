@@ -23,5 +23,6 @@ npm -v
 ```bash
 cd WebContent/frontend
 npm install
+npm install --save-dev concurrently
 
 npm run dev
