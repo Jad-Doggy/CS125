@@ -5,8 +5,6 @@ This folder contains a placeholder frontend for CITY built with:
 - TypeScript
 - Tailwind CSS
 
-There is **no backend integration yet**. The UI currently uses placeholder/mock data.
-
 ## Prerequisites
 - Node.js 18+ (Node 20+ recommended)
 - npm (comes with Node)
